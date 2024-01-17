@@ -1,6 +1,11 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Author Michael Cabral 2024
+:: Title: readybios
+:: GPL-3.0 license
+:: Description: Extracts/Copies Bios files to Recalbox
+
 ::--------------------------------------------------------------------
 ::VARS::
 
@@ -29,5 +34,7 @@ echo You selected the file: !biosFile!
 REM Pass the selected file path to your main batch script (EZ_Bios.bat)
 call EZ_Bios.bat "!biosFile!"
 ::--------------------------------------------------------------------
+
+rem Author: Michael Cabral
 
 endlocal

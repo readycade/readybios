@@ -1,6 +1,11 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Author Michael Cabral 2024
+:: Title: readybios
+:: GPL-3.0 license
+:: Description: Extracts/Copies Bios files to Recalbox
+
 ::--------------------------------------------------------------------
 ::VARS::
 set "extractPath=\\RECALBOX\share"
