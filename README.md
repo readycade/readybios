@@ -13,3 +13,4 @@ It puts everything in ALL THE RIGHT PLACES!
 ```
 eg: /recalbox/share/bios/
 ```
+### Remember to have your Ethernet Cable connected
