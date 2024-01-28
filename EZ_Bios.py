@@ -32,14 +32,6 @@ import sys
 import time
 from tqdm import tqdm
 
-root = tk.Tk()
-
-# set the window title
-root.title("Readycade™")
-
-# Remove the TK icon
-root.iconbitmap(default="icon.ico")
-
 def check_windows():
     if platform.system() != 'Windows':
         messagebox.showerror("Error", "This script is intended to run on Windows only. Exiting.")
@@ -164,6 +156,7 @@ def open_file():
             # Define paths
             appdata_path = os.path.join(os.environ['APPDATA'], 'readycade', 'biospacks')
             temp_path = r'F:\Readycade\TEMP\share'
+            #temp_path = r'\RECALBOX\share'
 
             # Ensure the directories exist
             os.makedirs(appdata_path, exist_ok=True)
@@ -206,6 +199,13 @@ def open_file():
     # Move cleanup outside the if condition to ensure it's called even if the user cancels the file selection
     cleanup()
 
+root = tk.Tk()
+
+# set the window title
+root.title("Readycade™")
+
+# Remove the TK icon
+#root.iconbitmap(default="icon.ico")
 
 # Logo
 logo = Image.open('logo.png')

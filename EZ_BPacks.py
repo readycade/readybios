@@ -227,7 +227,7 @@ def process_rom(file):
         # Define paths
         appdata_path = os.path.join(os.environ['APPDATA'], 'readycade', 'rompacks')
         temp_path = r'F:\Readycade\TEMP\share\roms'
-
+        #temp_path = r'\RECALBOX\share\roms'
         # Ensure the directories exist
         os.makedirs(appdata_path, exist_ok=True)
         os.makedirs(temp_path, exist_ok=True)
