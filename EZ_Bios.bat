@@ -1,207 +1,236 @@
-@echo off
-setlocal enabledelayedexpansion
+"""
+************************************************************************** 
+* READYCADE CONFIDENTIAL
+* __________________
+* 
+*  [2024] Readycade Incorporated 
+*  All Rights Reserved.
+* 
+* NOTICE:  All information contained herein is, and remains* the property of Readycade Incorporated and its suppliers,
+* if any.  The intellectual and technical concepts contained* herein are proprietary to Readycade Incorporated
+* and its suppliers and may be covered by U.S. and Foreign Patents,
+* patents in process, and are protected by trade secret or copyright law.
+* Dissemination of this information or reproduction of this material
+* is strictly forbidden unless prior written permission is obtained
+* from Readycade Incorporated.
+**************************************************************************
+* Author Michael Cabral 2024
+* Title: EZ_Bios_Packs
+* GPL-3.0 License
+* Description: Downloads and Installs Bios Packs (Recalbox 9/9.1+) to your Readycade
+"""
 
-:: Author Michael Cabral 2024
-:: Title: readybios
-:: GPL-3.0 license
-:: Description: Extracts/Copies Bios files to Recalbox
+import tkinter as tk
+from tkinter.filedialog import askopenfile
+from tkinter import ttk, messagebox, simpledialog
+import os
+from PIL import Image, ImageTk
+import platform
+import subprocess
+import shutil
+import sys
+import time
+from tqdm import tqdm
 
-::--------------------------------------------------------------------
-::VARS::
-set "extractPath=\\RECALBOX\share"
-set "tempExtractPath=%~dp0Temp"
-set "biosExtractPath=%APPDATA%\readycade\"
-set "authURL=https://forum.readycade.com/auth.php"
-::--------------------------------------------------------------------
+def check_windows():
+    if platform.system() != 'Windows':
+        messagebox.showerror("Error", "This script is intended to run on Windows only. Exiting.")
+        sys.exit(1)
+
+# Call the function to check the platform
+check_windows()
+
+# If the platform check passed, continue with the rest of your code
+print("Script is running on Windows. Continue execution.")
+
+# CHECK NETWORK SHARE
+print("Checking if the network share is available...")
+
+try:
+    subprocess.run(["ping", "-n", "1", "RECALBOX"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("Network share found.")
+except subprocess.CalledProcessError:
+    print("Error: Could not connect to the network share \\RECALBOX.")
+    print("Please make sure you are connected to the network and try again.")
+    
+    # Show a message box
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+    messagebox.showerror("Error", "Network Share not found. Please make sure you are connected to the network and try again.")
+    sys.exit()
+
+print()
+
+# Define the installation directory for 7-Zip
+installDir = "C:\\Program Files\\7-Zip"
+
+# Define the 7-Zip version you want to download
+version = "2301"
+
+# Define the download URL for the specified version
+downloadURL = f"https://www.7-zip.org/a/7z{version}-x64.exe"
+
+# Check if 7-Zip is already installed by looking for 7z.exe in the installation directory
+seven_zip_installed = os.path.exists(os.path.join(installDir, "7z.exe"))
+
+if seven_zip_installed:
+    print("7-Zip is already installed.")
+else:
+    # Echo a message to inform the user about the script's purpose
+    print("Authentication successful. Proceeding with installation...")
+
+    # Define the local directory to save the downloaded installer
+    localTempDir = os.path.expandvars(r"%APPDATA%\readycade\temp")
+
+    # Download the 7-Zip installer using curl and retain the original name
+    os.makedirs(localTempDir, exist_ok=True)
+    downloadPath = os.path.join(localTempDir, "7z_installer.exe")
+    with requests.get(downloadURL, stream=True) as response, open(downloadPath, 'wb') as outFile:
+        response.raise_for_status()
+        total_size = int(response.headers.get('content-length', 0))
+        block_size = 1024
+        with tqdm(total=total_size, unit='B', unit_scale=True, desc='Downloading 7-Zip') as pbar:
+            for data in response.iter_content(block_size):
+                pbar.update(len(data))
+                outFile.write(data)
+
+    # Run the 7-Zip installer and wait for it to complete
+    subprocess.run(["start", "/wait", "", downloadPath], shell=True)
+
+    # Check if the installation was successful
+    if not os.path.exists(os.path.join(installDir, "7z.exe")):
+        print("Installation failed.")
+        sys.exit()
+
+    # Additional code to run after the installation is complete
+    print("7-Zip is now installed.")
+
+# Function to update the status label
+def update_status(message):
+    status_var.set(message)
+    root.update_idletasks()
+
+# Function to perform cleanup
+def cleanup():
+    # Update the GUI more frequently during the cleanup process
+    def update_gui_cleanup():
+        root.update_idletasks()
+        root.after(100, update_gui_cleanup)
+
+    update_gui_cleanup()  # Start updating the GUI
+
+    # Clean up downloaded and extracted files
+    shutil.rmtree(os.path.join(os.environ['APPDATA'], 'readycade', 'biospacks'), ignore_errors=True)
+
+    # Update status label
+    update_status("Deleting Temporary Files... Please Wait...")
+    print("Deleting Temporary Files... Please Wait...")
+
+    # Sleep for 2 seconds
+    time.sleep(2)
+
+    # Clear status label
+    status_var.set("")
 
 
-::--------------------------------------------------------------------
-::CHECK NETWORK SHARE::
 
-echo Checking if the network share is available...
-ping -n 1 RECALBOX >nul
-if %errorlevel% neq 0 (
-    echo Error: Could not connect to the network share \\RECALBOX.
-    echo Please make sure you are connected to the network and try again.
-    pause
-    exit /b
-)
-echo.
-::--------------------------------------------------------------------
+# Status label
+status_var = tk.StringVar()
+status_label = tk.Label(root, textvariable=status_var, font="open-sans")
+status_label.grid(columnspan=3, column=0, row=4)
 
-::--------------------------------------------------------------------
-::PROMPT FOR USERNAME AND PASSWORD (no echo for password)::
+def open_file():
+    browse_text.set("loading...")
 
-set /p "dbUsername=Enter your username: "
-set "dbPassword="
-powershell -Command "$dbPassword = Read-Host 'Enter your password' -AsSecureString; [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($dbPassword)) | Out-File -FilePath credentials.txt -Encoding ASCII"
-set /p dbPassword=<credentials.txt
-del credentials.txt
+    # Update the GUI more frequently during the process
+    def update_gui():
+        root.update_idletasks()
+        root.after(100, update_gui)
 
-::--------------------------------------------------------------------
+    update_gui()  # Start updating the GUI
 
-::DELETE THIS BEFORE PRODUCTION!!!!!!!!!::
-::--------------------------------------------------------------------
-:: To Debug username/password
-::echo dbUsername=!dbUsername!
-::echo dbPassword=!dbPassword!
-::--------------------------------------------------------------------
+    file = askopenfile(parent=root, mode='rb', title="Choose a file", filetype=[("ZIP files", "*.zip;*.7z")])
+    if file:
+        # Check if the file name contains "recalbox"
+        if "recalbox" in os.path.basename(file.name).lower():
+            # Define paths
+            appdata_path = os.path.join(os.environ['APPDATA'], 'readycade', 'biospacks')
+            temp_path = r'F:\Readycade\TEMP\share'
 
-::--------------------------------------------------------------------
-::AUTHENTICATION::
+            # Ensure the directories exist
+            os.makedirs(appdata_path, exist_ok=True)
+            os.makedirs(temp_path, exist_ok=True)
 
-rem Perform authentication by sending a POST request to auth.php using the captured credentials
-curl -X POST -d "dbUsername=!dbUsername!&dbPassword=!dbPassword!" -H "Content-Type: application/x-www-form-urlencoded" "!authURL!" > auth_result.txt
+            # Update status label
+            update_status("Extracting Files...")
 
+            # Clear status label
+            status_var.set("")
 
-rem Check the authentication result
-set /p authResult=<auth_result.txt
+            # Extract using 7-Zip (adjust the path to 7z.exe accordingly)
+            extract_command = '7z x "{}" -o"{}"'.format(file.name, appdata_path)
 
-if "!authResult!" neq "Authenticated" (
-    echo Authentication failed. Exiting script...
-    del auth_result.txt
-    pause
-    exit /b
-) else (
-    echo Authentication successful. Proceeding with installation...
-    del auth_result.txt
-)
+            subprocess.run(extract_command, shell=True)
 
-echo.
-echo.
+            print("Extracting Files...")
 
-::--------------------------------------------------------------------
+            # Update status label
+            update_status("Copying to Files to your Readycade...")
 
+            # Copy the extracted contents to the destination directory
+            shutil.copytree(appdata_path, temp_path, dirs_exist_ok=True)
 
-::--------------------------------------------------------------------
-::10 SECOND COUNTDOWN MESSAGE::
+            print("Copying to Files to your Readycade...")
 
-REM Wait for 10 seconds and display a countdown message
-for /l %%A in (10,-1,1) do (
-    cls
-    REM Display important notice and warning
-    echo "IMPORTANT NOTICE: You are about to extract BIOS files for Recalbox. These files may be protected by copyright laws and their usage might have legal implications. Make sure you have the legal rights to extract and use these files. By proceeding with this extraction, you acknowledge that you are solely responsible for any legal consequences that may arise from your actions."
-    echo.
-    echo "Readycade Inc and its affiliates are not responsible for any legal issues that may arise from the use of these files. Use at your own risk. We do not condone piracy or any unauthorized use of copyrighted material."
-    echo.
-    echo.
-    echo "Thank you for choosing Readycade!"
-    echo.
-    echo Starting installation automatically in %%A seconds...
-    timeout /t 1 >nul
-)
+            # Update status label
+            print("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
 
-::--------------------------------------------------------------------
+            # Show messagebox
+            messagebox.showinfo("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
 
+        else:
+            print("Selected file does not contain 'recalbox' in the name.")
 
-::--------------------------------------------------------------------
-::INSTALL 7-ZIP::
+    # Set button text back to "Browse" regardless of whether a file was selected or not
+    browse_text.set("Browse")
 
-:: Define the installation directory for 7-Zip
-set "installDir=C:\Program Files\7-Zip"
+    # Move cleanup outside the if condition to ensure it's called even if the user cancels the file selection
+    cleanup()
 
-:: Define the 7-Zip version you want to download
-set "version=2301"
+root = tk.Tk()
 
-:: Define the download URL for the specified version
-set "downloadURL=https://www.7-zip.org/a/7z%version%-x64.exe"
+# set the window title
+root.title("Readycade™")
 
-:: Check if 7-Zip is already installed by looking for 7z.exe in the installation directory
-if exist "!installDir!\7z.exe" (
-    echo 7-Zip is already installed.
-) else (
-    :: Echo a message to inform the user about the script's purpose
-    echo Downloading and installing 7-Zip...
+# Remove the TK icon
+root.iconbitmap(default="icon.ico")
 
-    :: Define the local directory to save the downloaded installer
-    set "localTempDir=%TEMP%"
+# Logo
+logo = Image.open('logo.png')
+logo = ImageTk.PhotoImage(logo)
+logo_label = tk.Label(image=logo)
+logo_label.image = logo
+logo_label.grid(column=1, row=0)
 
-    :: Download the 7-Zip installer using curl and retain the original name
-    cd /d "%localTempDir%"
-    curl -L --insecure -o "7z_installer.exe" "!downloadURL!"
+# Instructions
+Instructions = tk.Label(root, text="Select a Bios file on your computer to install to your Readycade", font="open-sans")
+Instructions.grid(columnspan=3, column=0, row=1)
 
-    :: Check if the download was successful
-    if %errorlevel% neq 0 (
-        echo Download failed.
-        exit /b %errorlevel%
-    )
+# Status label
+status_var = tk.StringVar()
+status_label = tk.Label(root, textvariable=status_var, font="open-sans")
+status_label.grid(columnspan=3, column=0, row=4)
 
-    :: Run the 7-Zip installer and wait for it to complete
-    start /wait "" "7z_installer.exe"
+# Browse Button
+browse_text = tk.StringVar()
+browse_btn = tk.Button(root, textvariable=browse_text, command=open_file, font="open-sans", bg="#ff6600", fg="white", height=2, width=15)
+browse_text.set("Browse")
+browse_btn.grid(column=1, row=2)
 
-    :: Check if the installation was successful (You may want to customize this part)
-    if %errorlevel% neq 0 (
-        echo Installation failed.
-        exit /b %errorlevel%
-    )
+canvas = tk.Canvas(root, width=600, height=100)
+canvas.grid(columnspan=3)
 
-    :: Add your additional code here to run after the installation is complete
-    echo 7-Zip is now installed.
-)
+# Remove the TK icon
+root.iconbitmap(default="")
 
-::--------------------------------------------------------------------
-
-::--------------------------------------------------------------------
-::PASS FILE PATH WHEN DRAGGED ONTOP OF DRAG-AND-DROP.EXE::
-
-REM Check if a file path was passed as an argument
-if "%~1"=="" (
-    set /p "biosFile=Drag and drop the BIOS file here: "
-    if "!biosFile!"=="" (
-        echo No file path provided. Exiting script.
-        pause
-        exit /b
-    )
-) else (
-    set "biosFile=%~1"
-)
-
-REM Display the dropped or input file path
-echo You selected the file: !biosFile!
-
-REM Create a directory to extract the BIOS files
-if not exist "%biosExtractPath%" (
-    mkdir "%biosExtractPath%"
-)
-::--------------------------------------------------------------------
-
-::--------------------------------------------------------------------
-::EXTRACTION AND XCOPY TO NETWORK SHARE::
-
-REM Extract the BIOS files using 7-Zip to the biosExtractPath
-"C:\Program Files\7-Zip\7z.exe" x "!biosFile!" -o"%biosExtractPath%" -y
-
-REM Add an echo message
-echo Copying files to \\RECALBOX\share\bios...
-
-REM Copy the extracted files to the network share
-xcopy /Y /I /H /Q /E "%biosExtractPath%\*" "%extractPath%\"
-::--------------------------------------------------------------------
-
-::--------------------------------------------------------------------
-:: CLEAN UP TEMP FILES::
-
-REM Clean up the temporary extracted folder
-rmdir /s /q "%biosExtractPath%"
-::--------------------------------------------------------------------
-
-::--------------------------------------------------------------------
-::END MESSAGE WITH COUNTDOWN::
-
-:: Wait for 10 seconds and display a countdown message
-for /l %%A in (10,-1,1) do (
-    cls
-    echo Thank you for choosing Readycade!
-    echo.
-    echo Files copied to \\RECALBOX\bios successful!
-    echo Please reboot your device now!
-    echo.
-    echo Exiting script automatically in %%A seconds...
-    timeout /t 1 >nul
-)
-
-exit /b
-
-rem Author: Michael Cabral
-
-endlocal
+root.mainloop()

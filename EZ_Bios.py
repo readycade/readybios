@@ -32,6 +32,14 @@ import sys
 import time
 from tqdm import tqdm
 
+root = tk.Tk()
+
+# set the window title
+root.title("Readycade™")
+
+# Remove the TK icon
+root.iconbitmap(default="icon.ico")
+
 def check_windows():
     if platform.system() != 'Windows':
         messagebox.showerror("Error", "This script is intended to run on Windows only. Exiting.")
@@ -190,6 +198,7 @@ def open_file():
 
         else:
             print("Selected file does not contain 'recalbox' in the name.")
+            messagebox.showerror("Error", "Selected file does not contain 'recalbox' in the name.")
 
     # Set button text back to "Browse" regardless of whether a file was selected or not
     browse_text.set("Browse")
@@ -197,13 +206,6 @@ def open_file():
     # Move cleanup outside the if condition to ensure it's called even if the user cancels the file selection
     cleanup()
 
-root = tk.Tk()
-
-# set the window title
-root.title("Readycade™")
-
-# Remove the TK icon
-root.iconbitmap(default="icon.ico")
 
 # Logo
 logo = Image.open('logo.png')
