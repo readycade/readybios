@@ -1,3 +1,25 @@
+"""
+************************************************************************** 
+* READYCADE CONFIDENTIAL
+* __________________
+* 
+*  [2024] Readycade Incorporated 
+*  All Rights Reserved.
+* 
+* NOTICE:  All information contained herein is, and remains* the property of Readycade Incorporated and its suppliers,
+* if any.  The intellectual and technical concepts contained* herein are proprietary to Readycade Incorporated
+* and its suppliers and may be covered by U.S. and Foreign Patents,
+* patents in process, and are protected by trade secret or copyright law.
+* Dissemination of this information or reproduction of this material
+* is strictly forbidden unless prior written permission is obtained
+* from Readycade Incorporated.
+**************************************************************************
+* Author Michael Cabral 2024
+* Title: EZ_Bios_Packs
+* GPL-3.0 License
+* Description: Downloads and Installs Bios Packs (Recalbox 9/9.1+) to your Readycade
+"""
+
 import tkinter as tk
 from tkinter.filedialog import askopenfile
 from tkinter import ttk, messagebox, simpledialog
