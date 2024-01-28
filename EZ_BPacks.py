@@ -15,17 +15,14 @@
 * from Readycade Incorporated.
 **************************************************************************
 * Author Michael Cabral 2024
-* Title: EZ_Rom_Packs
+* Title: EZ_Bios_Packs
 * GPL-3.0 License
-* Description: Downloads and Installs Rom Packs to your Readycade eg: n64.zip, snes.7z ect
+* Description: Downloads and Installs Bios Packs (Recalbox 9/9.1+) to your Readycade
 """
 
 import tkinter as tk
 from tkinter.filedialog import askopenfile
 from tkinter import ttk, messagebox, simpledialog
-from tkinter import Tk, Label, StringVar, Button
-from tkinter.filedialog import askopenfile
-from tkinter import messagebox
 import os
 from PIL import Image, ImageTk
 import platform
@@ -33,100 +30,18 @@ import subprocess
 import shutil
 import sys
 import time
-#from tqdm import tqdm
-
-# Set global password
-global_password = "readysetgo"
-
-# Dictionary of valid console names
-valid_consoles = {
-    "64dd": "Nintendo 64DD",
-    "amiga600": "Amiga 600",
-    "amiga1200": "Amiga 1200",
-    "amstradcpc": "Amstrad CPC",
-    "apple2": "Apple II",
-    "apple2gs": "Apple IIGS",
-    "arduboy": "Arduboy",
-    "atari800": "Atari 800",
-    "atari2600": "Atari 2600",
-    "atari5200": "Atari 5200",
-    "atari7800": "Atari 7800",
-    "atarist": "Atari ST",
-    "atomiswave": "Atomiswave",
-    "bbcmicro": "BBC Micro",
-    "bk": "BK",
-    "c64": "Commodore 64",
-    "channelf": "Channel F",
-    "colecovision": "ColecoVision",
-    "daphne": "Daphne",
-    "dos": "DOS",
-    "fds": "Famicom Disk System",
-    "gamegear": "Game Gear",
-    "gba": "Game Boy Advance",
-    "gbc": "Game Boy Color",
-    "gb": "Game Boy",
-    "gw": "GW",
-    "gx4000": "GX4000",
-    "intellivision": "Intellivision",
-    "jaguar": "Atari Jaguar",
-    "lowresnx": "LowRes NX",
-    "lutro": "Lutro",
-    "mastersystem": "Sega Master System",
-    "megadrive": "Sega Genesis",
-    "model3": "Model 3",
-    "msx1": "MSX1",
-    "msx2": "MSX2",
-    "msxturbor": "MSX Turbo R",
-    "multivision": "Multivision",
-    "n64": "Nintendo 64",
-    "naomigd": "Naomi GD",
-    "naomi": "Naomi",
-    "neogeocd": "Neo Geo CD",
-    "neogeo": "Neo Geo",
-    "nes": "Nintendo Entertainment System",
-    "ngpc": "Neo Geo Pocket Color",
-    "ngp": "Neo Geo Pocket",
-    "o2em": "O2EM",
-    "oricatmos": "Oric Atmos",
-    "pcenginecd": "PC Engine CD",
-    "pcengine": "PC Engine",
-    "pcfx": "PC-FX",
-    "pcv2": "PCV2",
-    "pokemini": "Pokemini",
-    "ports": "Ports",
-    "samcoupe": "Sam Coupe",
-    "satellaview": "Satellaview",
-    "scv": "Super Cassette Vision",
-    "sega32x": "Sega 32X",
-    "sg1000": "SG-1000",
-    "snes": "Super Nintendo Entertainment System",
-    "solarus": "Solarus",
-    "spectravideo": "Spectravideo",
-    "sufami": "Sufami Turbo",
-    "supergrafx": "SuperGrafx",
-    "supervision": "Supervision",
-    "thomson": "Thomson",
-    "tic80": "TIC-80",
-    "trs80coco": "TRS-80 CoCo",
-    "uzebox": "Uzebox",
-    "vectrex": "Vectrex",
-    "vic20": "Commodore VIC-20",
-    "videopacplus": "Videopac Plus",
-    "virtualboy": "Virtual Boy",
-    "wasm4": "Wasm4",
-    "wswanc": "Wonderswan Color",
-    "wswan": "Wonderswan",
-    "x1": "X1",
-    "x68000": "X68000",
-    "zx81": "ZX81",
-    "zxspectrum images": "ZX Spectrum Images",
-    "zxspectrum videos": "ZX Spectrum Videos"
-}
+from tqdm import tqdm
 
 def check_windows():
     if platform.system() != 'Windows':
         messagebox.showerror("Error", "This script is intended to run on Windows only. Exiting.")
         sys.exit(1)
+
+# Call the function to check the platform
+check_windows()
+
+# If the platform check passed, continue with the rest of your code
+print("Script is running on Windows. Continue execution.")
 
 # CHECK NETWORK SHARE
 print("Checking if the network share is available...")
@@ -205,7 +120,7 @@ def cleanup():
     update_gui_cleanup()  # Start updating the GUI
 
     # Clean up downloaded and extracted files
-    shutil.rmtree(os.path.join(os.environ['APPDATA'], 'readycade', 'rompacks'), ignore_errors=True)
+    shutil.rmtree(os.path.join(os.environ['APPDATA'], 'readycade', 'biospacks'), ignore_errors=True)
 
     # Update status label
     update_status("Deleting Temporary Files... Please Wait...")
@@ -217,58 +132,14 @@ def cleanup():
     # Clear status label
     status_var.set("")
 
-# Function to extract and copy ROM files
-def process_rom(file):
-    # Get the base filename (without extension)
-    base_filename = os.path.splitext(os.path.basename(file.name))[0]
-
-    # Check if the base filename matches a valid console name
-    if base_filename in valid_consoles:
-        # Define paths
-        appdata_path = os.path.join(os.environ['APPDATA'], 'readycade', 'rompacks')
-        temp_path = r'F:\Readycade\TEMP\share\roms'
-        #temp_path = r'\RECALBOX\share\roms'
-        # Ensure the directories exist
-        os.makedirs(appdata_path, exist_ok=True)
-        os.makedirs(temp_path, exist_ok=True)
-
-        print("Extracting Files...")
-
-        # Update status label
-        update_status("Extracting Files...")
-
-        # Extract using 7-Zip with the global password
-        extract_command = '7z x -p{} "{}" -o"{}"'.format(global_password, file.name, appdata_path)
-        subprocess.run(extract_command, shell=True)
-
-        # Clear status label
-        status_var.set("")
-
-        # Update status label
-        update_status(f"Copying {valid_consoles[base_filename]} to your Readycade...")
-
-        print(f"Copying {valid_consoles[base_filename]} to your Readycade...")
-
-        # Copy the extracted contents to the destination directory
-        destination_path = os.path.join(temp_path, base_filename)
-        shutil.copytree(appdata_path, destination_path, dirs_exist_ok=True)
 
 
+# Status label
+status_var = tk.StringVar()
+status_label = tk.Label(root, textvariable=status_var, font="open-sans")
+status_label.grid(columnspan=3, column=0, row=4)
 
-        # Update status label
-        update_status("Success. Please Update your Gameslist Now.")
-
-        # Show messagebox
-        messagebox.showinfo("Success", f"Extraction and Copying completed for {valid_consoles[base_filename]}. Remember to Update your Gamelists.")
-
-        # Cleanup function
-        cleanup()
-    else:
-        # Display an error message for an invalid console name
-        messagebox.showerror("Error", "Invalid console name. Please use a valid console name eg: n64, amiga600 etc.")
-
-# Function to handle opening a ROM file
-def open_rom_file():
+def open_file():
     browse_text.set("loading...")
 
     # Update the GUI more frequently during the process
@@ -278,25 +149,63 @@ def open_rom_file():
 
     update_gui()  # Start updating the GUI
 
-    file = askopenfile(parent=root, mode='rb', title="Choose a ROM Pack (.zip or .7z only)", filetype=[("ZIP files", "*.zip;*.7z")])
+    file = askopenfile(parent=root, mode='rb', title="Choose a file", filetype=[("ZIP files", "*.zip;*.7z")])
     if file:
-        process_rom(file)
+        # Check if the file name contains "recalbox"
+        if "recalbox" in os.path.basename(file.name).lower():
+            # Define paths
+            appdata_path = os.path.join(os.environ['APPDATA'], 'readycade', 'biospacks')
+            temp_path = r'F:\Readycade\TEMP\share'
+            #temp_path = r'\RECALBOX\share'
+
+            # Ensure the directories exist
+            os.makedirs(appdata_path, exist_ok=True)
+            os.makedirs(temp_path, exist_ok=True)
+
+            # Update status label
+            update_status("Extracting Files...")
+
+            # Clear status label
+            status_var.set("")
+
+            # Extract using 7-Zip (adjust the path to 7z.exe accordingly)
+            extract_command = '7z x "{}" -o"{}"'.format(file.name, appdata_path)
+
+            subprocess.run(extract_command, shell=True)
+
+            print("Extracting Files...")
+
+            # Update status label
+            update_status("Copying to Files to your Readycade...")
+
+            # Copy the extracted contents to the destination directory
+            shutil.copytree(appdata_path, temp_path, dirs_exist_ok=True)
+
+            print("Copying to Files to your Readycade...")
+
+            # Update status label
+            print("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
+
+            # Show messagebox
+            messagebox.showinfo("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
+
+        else:
+            print("Selected file does not contain 'recalbox' in the name.")
+            messagebox.showerror("Error", "Selected file does not contain 'recalbox' in the name.")
 
     # Set button text back to "Browse" regardless of whether a file was selected or not
     browse_text.set("Browse")
 
-# Set up the main window
+    # Move cleanup outside the if condition to ensure it's called even if the user cancels the file selection
+    cleanup()
+
 root = tk.Tk()
 
 # set the window title
 root.title("Readycade™")
 
 # Remove the TK icon
-root.iconbitmap(default="icon.ico")
-
-# Instructions
-Instructions = tk.Label(root, text="Select a ROM Pack on your computer to install to your Readycade", font="open-sans")
-Instructions.grid(columnspan=3, column=0, row=1)
+#root.iconbitmap(default="icon.ico")
 
 # Logo
 logo = Image.open('logo.png')
@@ -305,6 +214,10 @@ logo_label = tk.Label(image=logo)
 logo_label.image = logo
 logo_label.grid(column=1, row=0)
 
+# Instructions
+Instructions = tk.Label(root, text="Select a Bios file on your computer to install to your Readycade", font="open-sans")
+Instructions.grid(columnspan=3, column=0, row=1)
+
 # Status label
 status_var = tk.StringVar()
 status_label = tk.Label(root, textvariable=status_var, font="open-sans")
@@ -312,8 +225,14 @@ status_label.grid(columnspan=3, column=0, row=4)
 
 # Browse Button
 browse_text = tk.StringVar()
-browse_btn = tk.Button(root, textvariable=browse_text, command=open_rom_file, font="open-sans", bg="#ff6600", fg="white", height=2, width=15)
+browse_btn = tk.Button(root, textvariable=browse_text, command=open_file, font="open-sans", bg="#ff6600", fg="white", height=2, width=15)
 browse_text.set("Browse")
 browse_btn.grid(column=1, row=2)
+
+canvas = tk.Canvas(root, width=600, height=100)
+canvas.grid(columnspan=3)
+
+# Remove the TK icon
+root.iconbitmap(default="")
 
 root.mainloop()
