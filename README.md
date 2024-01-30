@@ -2,8 +2,18 @@
 
 # Readybios (Ready... Set... Play!)
 
-Essentially what the script does is offer you a drag and drop solution to install Bios files to Recalbox.
+## INSTALLATION
 
+### Windows 10/11 Supported ONLY:
+Select a Bios Pack from your computer and let EZ_BPacks.exe do the rest!
+
+
+The newer python based GUI app is more user friendly.
+-------------------------------------------------------------------------------------------------------
+
+## OLD BATCH SCRIPT
+
+Essentially what the script does is offer you a drag and drop solution to install Bios files to Recalbox.
 
 ## INSTALLATION
 
