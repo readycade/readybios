@@ -7,6 +7,8 @@
 ### Windows 10/11 Supported ONLY:
 Select a Bios Pack from your computer and let EZ_BPacks.exe do the rest!
 
+(Must be a supported Bios Pack either .zip or .7z with Recalbox in the title)
+
 
 The newer python based GUI app is more user friendly.
 -------------------------------------------------------------------------------------------------------
