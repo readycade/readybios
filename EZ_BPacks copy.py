@@ -50,7 +50,7 @@ def resource_path(relative_path):
 
 def show_eula():
     # Load EULA from EULA.txt
-    with open(eula_path, "r") as file:
+    with open("EULA.txt", "r") as file:
         eula_text = file.read()
 
     # Create a new window for displaying the EULA
@@ -135,10 +135,7 @@ else:
     print("Authentication successful. Proceeding with installation...")
 
     # Define the local directory to save the downloaded installer
-    #localTempDir = os.path.expandvars(r"%APPDATA%\readycade\temp")
-
-    # Define the relative path to the localTempDir
-    localTempDir = os.path.join(os.environ["APPDATA"], "readycade", "temp")
+    localTempDir = os.path.expandvars(r"%APPDATA%\readycade\temp")
 
     # Download the 7-Zip installer using curl and retain the original name
     os.makedirs(localTempDir, exist_ok=True)
@@ -211,8 +208,8 @@ def open_file():
         if "recalbox" in os.path.basename(file.name).lower():
             # Define paths
             appdata_path = os.path.join(os.environ['APPDATA'], 'readycade', 'biospacks')
-            #temp_path = r'F:\Readycade\TEMP\share'
-            temp_path = r'\\RECALBOX\share'
+            temp_path = r'F:\Readycade\TEMP\share'
+            #temp_path = r'\RECALBOX\share'
 
             # Ensure the directories exist
             os.makedirs(appdata_path, exist_ok=True)
@@ -220,8 +217,6 @@ def open_file():
 
             # Update status label
             update_status("Extracting Files...")
-
-            print("Extracting Files...")
 
             # Clear status label
             status_var.set("")
@@ -231,13 +226,15 @@ def open_file():
 
             subprocess.run(extract_command, shell=True)
 
-            # Update status label
-            update_status("Copying Bios Files to your Readycade...")
+            print("Extracting Files...")
 
-            print("Copying to Bios Files to your Readycade...")
+            # Update status label
+            update_status("Copying to Files to your Readycade...")
 
             # Copy the extracted contents to the destination directory
             shutil.copytree(appdata_path, temp_path, dirs_exist_ok=True)
+
+            print("Copying to Files to your Readycade...")
 
             # Update status label
             print("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
@@ -269,8 +266,7 @@ root.title("Readycade™")
 #root.iconbitmap(default="icon.ico")
 
 # Logo
-logo_path = os.path.join(os.path.dirname(__file__), 'logo.png')
-logo = Image.open(logo_path)
+logo = Image.open('logo.png')
 logo = ImageTk.PhotoImage(logo)
 logo_label = tk.Label(image=logo)
 logo_label.image = logo
@@ -291,7 +287,7 @@ browse_btn = tk.Button(root, textvariable=browse_text, command=open_file, font="
 browse_text.set("Browse")
 browse_btn.grid(column=1, row=2)
 
-canvas = tk.Canvas(root, width=600, height=50)
+canvas = tk.Canvas(root, width=600, height=100)
 canvas.grid(columnspan=3)
 
 root.mainloop()

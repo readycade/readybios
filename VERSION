@@ -1,0 +1,28 @@
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 0, 0, 0),
+    prodvers=(1, 0, 0, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+    ),
+  kids=[
+    StringFileInfo(
+      [
+    StringTable(
+        u'040904B0',
+        [StringStruct(u'CompanyName', u'Readycade Incorporated'),
+        StringStruct(u'FileDescription', u'EZ_BPacks'),
+        StringStruct(u'FileVersion', u'1.0.0.0    (win10-22H2-19045.3930)'),
+        StringStruct(u'InternalName', u'EZ_BPacks'),
+        StringStruct(u'LegalCopyright', u'Readycade Incorporated. All rights reserved.'),
+        StringStruct(u'OriginalFilename', u'EZ_BPacks.Exe'),
+        StringStruct(u'ProductName', u'Readycade'),
+        StringStruct(u'ProductVersion', u'1, 0, 0, 0')])
+    ]), 
+    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+  ]
+)
