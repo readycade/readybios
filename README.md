@@ -5,7 +5,7 @@
 ## INSTALLATION
 
 ### Windows 10/11 Supported ONLY:
-Select a Bios Pack from your computer and let EZ_BPacks.exe do the rest!
+Select a Bios Pack from your computer and let EZ_BPacks_Installer.exe do the rest!
 
 (Must be a supported Bios Pack either .zip or .7z with Recalbox in the title)
 
