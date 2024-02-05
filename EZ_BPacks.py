@@ -268,6 +268,10 @@ root.title("Readycade™")
 # Remove the TK icon
 #root.iconbitmap(default="icon.ico")
 
+# Set the window icon
+icon_path = os.path.join(os.path.dirname(__file__), 'icon.ico')  # Replace 'icon.ico' with your actual icon file
+root.iconbitmap(icon_path)
+
 # Logo
 logo_path = os.path.join(os.path.dirname(__file__), 'logo.png')
 logo = Image.open(logo_path)
