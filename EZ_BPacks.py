@@ -21,9 +21,12 @@
 """
 
 import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+from tkinter import Tk, Label, StringVar, Button, Scrollbar, Text
 from tkinter.filedialog import askopenfile
-from tkinter import ttk, messagebox, simpledialog, Scrollbar, Text
+from tkinter import messagebox
 import os
+import requests
 from PIL import Image, ImageTk
 import platform
 import subprocess
@@ -106,7 +109,7 @@ except subprocess.CalledProcessError:
     print("Please make sure you are connected to the network and try again.")
     
     # Show a message box
-    #root = tk.Tk()
+    root = tk.Tk()
     root.withdraw()  # Hide the main window
     messagebox.showerror("Error", "Network Share not found. Please make sure you are connected to the network and try again.")
     sys.exit()
@@ -211,7 +214,6 @@ def open_file():
         if "recalbox" in os.path.basename(file.name).lower():
             # Define paths
             appdata_path = os.path.join(os.environ['APPDATA'], 'readycade', 'biospacks')
-            #temp_path = r'F:\Readycade\TEMP\share'
             temp_path = r'\\RECALBOX\share'
 
             # Ensure the directories exist
