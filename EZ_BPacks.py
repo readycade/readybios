@@ -137,9 +137,6 @@ else:
     # Echo a message to inform the user about the script's purpose
     print("Authentication successful. Proceeding with installation...")
 
-    # Define the local directory to save the downloaded installer
-    #localTempDir = os.path.expandvars(r"%APPDATA%\readycade\temp")
-
     # Define the relative path to the localTempDir
     localTempDir = os.path.join(os.environ["APPDATA"], "readycade", "temp")
 
@@ -165,6 +162,11 @@ else:
 
     # Additional code to run after the installation is complete
     print("7-Zip is now installed.")
+
+# Status label
+status_var = tk.StringVar()
+status_label = tk.Label(root, textvariable=status_var, font="open-sans")
+status_label.grid(columnspan=3, column=0, row=4)
 
 # Function to update the status label
 def update_status(message):
@@ -193,10 +195,7 @@ def cleanup():
     # Clear status label
     status_var.set("")
 
-# Status label
-status_var = tk.StringVar()
-status_label = tk.Label(root, textvariable=status_var, font="open-sans")
-status_label.grid(columnspan=3, column=0, row=4)
+cleanup()
 
 def open_file():
     browse_text.set("loading...")
@@ -239,7 +238,13 @@ def open_file():
             print("Copying to Bios Files to your Readycade...")
 
             # Copy the extracted contents to the destination directory
-            shutil.copytree(appdata_path, temp_path, dirs_exist_ok=True)
+            for root_dir, dirs, files in os.walk(appdata_path):
+                for file in files:
+                    if not file.startswith('.'):
+                        src_file = os.path.join(root_dir, file)
+                        dst_file = os.path.join(temp_path, os.path.relpath(src_file, appdata_path))
+                        os.makedirs(os.path.dirname(dst_file), exist_ok=True)
+                        shutil.copy(src_file, dst_file)
 
             # Update status label
             print("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
@@ -257,7 +262,6 @@ def open_file():
     # Move cleanup outside the if condition to ensure it's called even if the user cancels the file selection
     cleanup()
 
-
 # Hide the main window initially
 root.withdraw()
 
@@ -266,9 +270,6 @@ show_eula()
 
 # set the window title
 root.title("Readycade™")
-
-# Remove the TK icon
-#root.iconbitmap(default="icon.ico")
 
 # Set the window icon
 icon_path = os.path.join(os.path.dirname(__file__), 'icon.ico')  # Replace 'icon.ico' with your actual icon file
