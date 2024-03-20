@@ -195,8 +195,6 @@ def cleanup():
     # Clear status label
     status_var.set("")
 
-cleanup()
-
 def open_file():
     browse_text.set("loading...")
 
@@ -300,5 +298,7 @@ browse_btn.grid(column=1, row=2)
 
 canvas = tk.Canvas(root, width=600, height=50)
 canvas.grid(columnspan=3)
+
+cleanup()
 
 root.mainloop()
