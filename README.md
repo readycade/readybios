@@ -27,3 +27,6 @@ It puts everything in ALL THE RIGHT PLACES!
 eg: /recalbox/share/bios/
 ```
 ### Remember to have your Ethernet Cable connected
+
+### Screenshot of Readycade EZ Bios Pack Installer
+![Readycade EZ BPacks Installer](https://github.com/readycade/readybios/blob/master/readycade_biospack.PNG)
