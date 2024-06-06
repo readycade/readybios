@@ -1,6 +1,12 @@
 
 
-# Readybios (Ready... Set... Play!)
+## Readycade EZ Bios Packs
+Browse your computer for a compatible Bios Pack and we'll do the rest!
+
+**Recalbox 9.0/9.1** Bios Packs **ONLY!**
+
+## Click the Picture below to Watch the EZ Bios Packs Installation Tutorial
+[![EZ Bios Packs](EZ_Bios_Packs.jpg)](https://www.youtube.com/watch?v=yJx-iqCVvvg)
 
 ## INSTALLATION
 
