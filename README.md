@@ -8,8 +8,7 @@ Browse your computer for a compatible Bios Pack and we'll do the rest!
 
 ## INSTALLATION
 
-### Windows 10/11 Supported ONLY:
-Select a Bios Pack from your computer and let EZ_BPacks_Installer.exe do the rest!
+### Windows 10/11, Linux and MacOS Supported
 
 **Recalbox 9.0/9.1** Bios Packs **ONLY!**
 (Must be a **supported** Bios Pack either **.zip** or **.7z** with **Recalbox** in the title)
@@ -24,9 +23,9 @@ The newer python based GUI app is more user friendly.
 
 -------------------------------------------------------------------------------------------------------
 
-## OLD BATCH SCRIPT
+## OLD BATCH SCRIPT (USE AT YOUR OWN RISK!)
 
-Essentially what the script does is offer you a drag and drop solution to install Bios files to Recalbox.
+Essentially what the script does is offer you a **drag and drop** solution to install **Bios files** to Recalbox.
 
 ## INSTALLATION
 
