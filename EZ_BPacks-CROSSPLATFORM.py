@@ -17,6 +17,7 @@
 * Author Michael Cabral 2024
 * Title: EZ_Bios_Packs
 * GPL-3.0 License
+* Platforms: Windows 10/11, Linux, MacOS
 * Description: Downloads and Installs Bios Packs (Recalbox 9/9.1+) to your Readycade
 
 ## DISCLAIMER: This script is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and noninfringement.
