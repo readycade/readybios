@@ -36,19 +36,23 @@ from tkinter import ttk, messagebox, simpledialog
 from tkinter import Tk, Label, StringVar, Button, Scrollbar, Text
 from tkinter.filedialog import askopenfile
 from tkinter import messagebox
+from tkinter.scrolledtext import ScrolledText
 import os
 import requests
 from PIL import Image, ImageTk
+import logging
+from pathlib import Path
 import platform
 import subprocess
 import shutil
 import sys
+import tarfile
 import time
 from tqdm import tqdm
-from playsound import playsound  # Cross-platform sound playback
+import playsound  # Cross-platform sound playback
 
 # Get the user's home directory
-home_directory = os.path.expanduser("~")
+home_directory = str(Path.home())
 
 # Define the target directory for cleanup
 target_directory = os.path.join(home_directory, "readycade", "biospacks")
@@ -59,7 +63,7 @@ if platform.system() == 'Windows':
     install_dir = os.path.join("C:", "Program Files", "7-Zip")
 else:
     # On Linux and macOS, use a common system-wide location for program installations
-    install_dir = "/usr/bin"
+    install_dir = "/usr/local/bin"
 
 # Get the script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -69,6 +73,20 @@ eula_path = os.path.join(script_dir, "EULA.txt")
 
 # Define the relative path to the ready.wav file
 sound_file_path = os.path.join(script_dir, "ready.wav")
+
+# Play sound function
+def play_ready_sound():
+    if platform.system() == 'Windows':
+        import winsound
+        winsound.PlaySound(sound_file_path, winsound.SND_FILENAME)
+    else:
+        playsound.playsound(sound_file_path)
+
+# Set up logging configuration (cross-platform)
+log_file_path = os.path.join(script_dir, "script_log.txt")
+if not os.access(script_dir, os.W_OK):
+    log_file_path = "/tmp/script_log.txt"  # Fallback to a writable location
+logging.basicConfig(filename=log_file_path, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -80,13 +98,6 @@ def resource_path(relative_path):
  
     return os.path.join(base_path, relative_path)
 
-def play_ready_sound():
-    if platform.system() == 'Windows':
-        import winsound
-        winsound.PlaySound(sound_file_path, winsound.SND_FILENAME)
-    else:
-        playsound(sound_file_path)
-
 def show_eula():
     # Load EULA from EULA.txt
     with open(eula_path, "r") as file:
@@ -96,13 +107,17 @@ def show_eula():
     eula_window = tk.Toplevel()
     eula_window.title("End User License Agreement")
 
+    # Configure the grid layout
+    eula_window.rowconfigure(0, weight=1)
+    eula_window.columnconfigure(0, weight=1)
+
     # Add a Text widget for displaying the EULA text with a scroll bar
-    text_box = Text(eula_window, wrap=tk.WORD, height=24, width=70, padx=15, pady=15)
+    text_box = ScrolledText(eula_window, wrap=tk.WORD, height=24, width=70, padx=15, pady=15)
     text_box.insert(tk.END, eula_text)
     text_box.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
     # Add a scrollbar
-    scrollbar = Scrollbar(eula_window, command=text_box.yview)
+    scrollbar = tk.Scrollbar(eula_window, command=text_box.yview)
     scrollbar.grid(row=0, column=1, sticky="nsew")
     text_box['yscrollcommand'] = scrollbar.set
 
@@ -156,6 +171,25 @@ def check_network_share():
 
 check_network_share()
 
+def run_with_sudo(command):
+    """
+    Run a shell command with sudo using osascript on macOS or pkexec for graphical sudo prompt on Linux.
+    """
+    try:
+        if platform.system() == 'Darwin':
+            # Use AppleScript to run the command with administrator privileges on macOS
+            script = f'do shell script "{command}" with administrator privileges'
+            subprocess.run(['osascript', '-e', script], check=True)
+        elif platform.system() == 'Linux':
+            # Use pkexec to run the command with a graphical sudo prompt on Linux
+            subprocess.run(['pkexec', 'sh', '-c', command], check=True)
+        else:
+            print("Unsupported operating system.")
+            sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command with sudo: {e}")
+        sys.exit(1)
+
 # Define the 7-Zip version and download URLs
 version = "2406"
 download_urls = {
@@ -175,30 +209,30 @@ if current_platform == 'Linux':
         downloadURL = download_urls["Linux_arm64"]
     else:
         print(f"Unsupported Linux architecture: {arch}")
-        exit_code = 1
+        exit(1)
 elif current_platform == 'Darwin':
     downloadURL = download_urls["macOS"]
 elif current_platform == 'Windows':
     downloadURL = download_urls["Windows"]
 else:
     print(f"Unsupported platform: {current_platform}")
-    exit_code = 1
+    exit(1)
 
 # Define the installation directory for 7-Zip
 if current_platform == 'Windows':
     installDir = "C:\\Program Files\\7-Zip"
     executable_name = "7z.exe"
 elif current_platform in ['Linux', 'Darwin']:
-    installDir = "/usr/bin"
+    installDir = "/usr/local/bin"  # Correct installation directory
     executable_name = "7zz"
 else:
     print(f"Unsupported platform: {current_platform}")
-    exit_code = 1
+    exit(1)
 
 # Check if 7-Zip is already installed
 if not os.path.exists(os.path.join(installDir, executable_name)):
     # Define the temporary directory for downloading the installer
-    home_directory = os.path.expanduser("~")
+    home_directory = str(Path.home())
     tempDir = os.path.join(home_directory, "readycade", "7zip_temp")
     os.makedirs(tempDir, exist_ok=True)
     downloadPath = os.path.join(tempDir, os.path.basename(downloadURL))
@@ -219,29 +253,42 @@ if not os.path.exists(os.path.join(installDir, executable_name)):
             subprocess.run(["msiexec", "/i", downloadPath], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Installation failed with error: {e}")
-            exit_code = 1
+            exit(1)
     elif current_platform == 'Linux' or current_platform == 'Darwin':
         try:
             with tarfile.open(downloadPath, 'r:xz') as tar:
                 tar.extractall(path=tempDir)
         except Exception as e:
             print(f"Installation failed with error: {e}")
-            exit_code = 1
+            exit(1)
 
-        # Move binaries to install directory and make them executable
-        extracted_folder = os.path.join(tempDir, f"7z{version}")
-        binaries = [os.path.join(extracted_folder, f) for f in os.listdir(extracted_folder) if os.path.isfile(os.path.join(extracted_folder, f))]
-        for binary in binaries:
+        # Locate the 7zz binary and move it to the install directory
+        source_path = os.path.join(tempDir, '7zz')
+        if not os.path.exists(source_path):
+            print(f"7zz binary not found in the extracted folder: {tempDir}")
+            exit(1)
+
+        target_path = os.path.join(installDir, executable_name)
+        try:
+            os.rename(source_path, target_path)
+            os.chmod(target_path, 0o755)  # Make executable
+            print(f"Moved {source_path} to {target_path}")
+        except PermissionError:
             try:
-                os.rename(binary, os.path.join(installDir, executable_name))
-                os.chmod(os.path.join(installDir, executable_name), 0o755)  # Make executable
-            except Exception as e:
-                print(f"Error moving binary {binary} to {installDir}: {e}")
+                # Combine mv and chmod into a single command
+                command = f'mv {source_path} {target_path} && chmod 755 {target_path}'
+                run_with_sudo(command)
+                print(f"Moved {source_path} to {target_path} with sudo")
+            except subprocess.CalledProcessError as e:
+                print(f"Error moving binary {source_path} to {target_path}: {e}")
+                exit(1)
+        except Exception as e:
+            print(f"Error moving binary {source_path} to {target_path}: {e}")
+            exit(1)
 
         print("7-Zip is now installed.")
 else:
     print("7-Zip is already installed.")
-
 
 # Function to update the status label
 def update_status(message):
@@ -273,7 +320,6 @@ def cleanup():
     # Clear status label
     status_var.set("")
 
-# Function to open a file
 def open_file():
     browse_text.set("loading...")
 
@@ -289,47 +335,77 @@ def open_file():
     if file:
         # Check if the file name contains "recalbox"
         if "recalbox" in os.path.basename(file.name).lower():
-            # Define paths
-            appdata_path = os.path.join(home_directory, "readycade", "biospacks")
-            temp_path = r'\\RECALBOX\share'
+            try:
+                # Get the user's home directory
+                home_directory = str(Path.home())
 
-            # Ensure the directories exist
-            os.makedirs(appdata_path, exist_ok=True)
-            os.makedirs(temp_path, exist_ok=True)
+                # Define paths
+                appdata_path = os.path.join(home_directory, "readycade", "biospacks")
 
-            # Update status label
-            update_status("Extracting Files...")
+                # Determine the platform
+                current_platform = platform.system()
 
-            print("Extracting Files...")
+                if current_platform == "Windows":
+                    temp_path = r'\\RECALBOX\share'
+                    extract_command = r'"C:\Program Files\7-Zip\7z.exe" x "{}" -o"{}"'.format(file.name, appdata_path)
+                else:
+                    # For Linux and Mac
+                    extract_command = ["/usr/local/bin/7zz", 'x', '-aoa', '-o{}'.format(appdata_path), file.name]
+                    
+                    if current_platform == "Darwin":
+                        temp_path = "/Volumes/share"
+                    elif current_platform == "Linux":
+                        possible_paths = [
+                            "/run/user/1000/gvfs/smb-share:server=recalbox.local,share=roms",
+                            "/media/$(whoami)/recalbox/share/roms",
+                            "/mnt/RECALBOX/share/roms"
+                        ]
+                        temp_path = next((path for path in possible_paths if os.path.exists(path)), None)
+                        if not temp_path:
+                            raise FileNotFoundError("RECALBOX share directory not found on Linux.")
+                    else:
+                        raise NotImplementedError("Unsupported platform: {}".format(current_platform))
 
-            # Clear status label
-            status_var.set("")
+                # Ensure the directories exist
+                os.makedirs(appdata_path, exist_ok=True)
+                os.makedirs(temp_path, exist_ok=True)
 
-            # Extract using 7-Zip (adjust the path to 7z.exe accordingly)
-            extract_command = r'"C:\Program Files\7-Zip\7z.exe" x "{}" -o"{}"'.format(file.name, appdata_path)
+                # Update status label
+                update_status("Extracting Files...")
+                print("Extracting Files...")
 
-            subprocess.run(extract_command, shell=True)
+                # Clear status label
+                status_var.set("")
 
-            # Update status label
-            update_status("Copying Bios Files to your Readycade...")
+                # Execute the extraction command
+                if current_platform == "Windows":
+                    subprocess.run(extract_command, shell=True)
+                else:
+                    subprocess.run(extract_command, check=True)
 
-            print("Copying to Bios Files to your Readycade...")
+                # Update status label
+                update_status("Copying Bios Files to your Readycade...")
+                print("Copying Bios Files to your Readycade...")
 
-            # Copy the extracted contents to the destination directory
-            for root_dir, dirs, files in os.walk(appdata_path):
-                for file in files:
-                    if not file.startswith('.'):
-                        src_file = os.path.join(root_dir, file)
-                        dst_file = os.path.join(temp_path, os.path.relpath(src_file, appdata_path))
-                        os.makedirs(os.path.dirname(dst_file), exist_ok=True)
-                        shutil.copy(src_file, dst_file)
+                # Copy the extracted contents to the destination directory
+                for root_dir, dirs, files in os.walk(appdata_path):
+                    for file in files:
+                        if not file.startswith('.'):
+                            src_file = os.path.join(root_dir, file)
+                            dst_file = os.path.join(temp_path, os.path.relpath(src_file, appdata_path))
+                            os.makedirs(os.path.dirname(dst_file), exist_ok=True)
+                            shutil.copy2(src_file, dst_file)
 
-            # Update status label
-            print("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
-            update_status("Ready!")
-            play_ready_sound()
-            # Show messagebox
-            messagebox.showinfo("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
+                # Update status label
+                print("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
+                update_status("Ready!")
+                play_ready_sound()
+                # Show messagebox
+                messagebox.showinfo("Success", "Extraction and Copying completed. Please reboot your Readycade now.")
+
+            except Exception as e:
+                print("Error during processing:", e)
+                messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
         else:
             print("Selected file does not contain 'recalbox' in the name.")
@@ -340,7 +416,6 @@ def open_file():
 
     # Move cleanup outside the if condition to ensure it's called even if the user cancels the file selection
     cleanup()
-
 
 # Initialize Tkinter
 root = tk.Tk()
