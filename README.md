@@ -3,7 +3,7 @@
 ## ReadyBios
 Browse your computer for a compatible Bios Pack and we'll do the rest!
 
-## Click the Picture below to Watch the ReadyBios Installation Tutorial
+## Click the Picture below to Watch the ReadyBios Tutorial
 [![EZ Bios Packs](EZ_Bios_Packs.jpg)](https://www.youtube.com/watch?v=yJx-iqCVvvg)
 
 ## INSTALLATION
