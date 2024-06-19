@@ -15,5 +15,5 @@ Browse your computer for a compatible Bios Pack and we'll do the rest!
 
 ### Remember to have your Ethernet Cable connected
 
-### Screenshot of Readycade EZ Bios Pack Installer
+### Screenshot of ReadyBios
 ![Readycade EZ BPacks Installer](https://github.com/readycade/readybios/blob/master/readycade_biospack.PNG)
