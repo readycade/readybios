@@ -4,7 +4,7 @@
 Browse your computer for a compatible Bios Pack and we'll do the rest!
 
 ## Click the Picture below to Watch the ReadyBios Tutorial
-[![EZ Bios Packs](EZ_Bios_Packs.jpg)](https://www.youtube.com/watch?v=yJx-iqCVvvg)
+[![EZ Bios Packs](EZ_Bios_Packs.jpg)](https://readycade.com/2023/11/02/readycade-bios-pack-installer-1-0-tutorial/)
 
 ## INSTALLATION
 
